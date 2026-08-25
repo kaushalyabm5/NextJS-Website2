@@ -1,1 +1,8 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-brand-red: #dc2626; /* Tailwind Red-600 */
+  --color-brand-red-hover: #b91c1c; /* Tailwind Red-700 */
+}
