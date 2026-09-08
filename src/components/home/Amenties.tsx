@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { Saira } from "next/font/google";
 import { 
   Dumbbell, 
@@ -11,6 +12,13 @@ import {
   ShowerHead, 
   Activity 
 } from "lucide-react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 const saira = Saira({
   subsets: ["latin"],
@@ -77,71 +85,106 @@ const amenities = [
 ];
 
 export default function Amenities() {
+  const targetRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(
+    () => {
+      if (!targetRef.current || !trackRef.current) return;
+
+      const track = trackRef.current;
+      
+      const getScrollAmount = () => {
+        const trackWidth = track.scrollWidth;
+        return -(trackWidth - window.innerWidth + 64);
+      };
+
+      const tween = gsap.to(track, {
+        x: getScrollAmount,
+        ease: "none", // Direct 1:1 scroll link
+        scrollTrigger: {
+          trigger: targetRef.current,
+          start: "top top",
+          end: () => `+=${track.scrollWidth - window.innerWidth}`,
+          pin: true,
+          scrub: true, // Direct tracking without inertia/smooth lag
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+        },
+      });
+
+      return () => {
+        tween.kill();
+      };
+    },
+    { scope: targetRef }
+  );
+
   return (
     <section 
+      ref={targetRef}
       id="amenities" 
-      className="py-20 md:py-28 bg-neutral-100 dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 transition-colors duration-300 border-t border-neutral-200 dark:border-neutral-900"
+      className="relative h-screen w-full bg-neutral-100 dark:bg-[#050505] text-neutral-900 dark:text-neutral-100 transition-colors duration-300 overflow-hidden flex flex-col justify-center border-t border-neutral-200 dark:border-neutral-900"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Section Header */}
-        <div className="max-w-3xl mb-16 md:mb-20">
-          <span className="text-xs font-bold uppercase tracking-widest text-red-600 mb-3 block">
+      {/* Section Header */}
+      <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 mb-8 shrink-0">
+        <div className="max-w-3xl">
+          <span className="text-xs font-bold uppercase tracking-widest text-red-600 mb-2 block">
             Facility Architecture
           </span>
-          <h2 className={`${saira.className} text-3xl sm:text-5xl font-medium tracking-tight text-neutral-900 dark:text-white`}>
+          <h2 className={`${saira.className} text-2xl sm:text-4xl font-medium tracking-tight text-neutral-900 dark:text-white`}>
             Engineered for uncompromised workouts.
           </h2>
-          <p className="mt-4 text-sm sm:text-base text-neutral-600 dark:text-neutral-400 max-w-2xl leading-relaxed">
-            Every square foot of One Life Fitness Chilaw is purposefully built to support maximum athletic performance and seamless recovery.
-          </p>
         </div>
+      </div>
 
-        {/* Grid Container */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Horizontal Cards Track */}
+      <div className="w-full overflow-hidden">
+        <div 
+          ref={trackRef} 
+          className="flex gap-6 px-4 sm:px-6 lg:px-8 w-max will-change-transform"
+        >
           {amenities.map((item) => {
             const Icon = item.icon;
             return (
               <div
                 key={item.id}
-                className="group relative h-[360px] rounded-3xl bg-neutral-900 overflow-hidden border border-neutral-200 dark:border-neutral-800/80 hover:border-red-600/60 transition-all duration-500 flex flex-col justify-between p-7 shadow-sm"
+                className="group relative w-[300px] sm:w-[350px] h-[400px] shrink-0 rounded-2xl bg-neutral-950 overflow-hidden border border-neutral-300 dark:border-neutral-800 hover:border-red-600/80 transition-all duration-300 flex flex-col justify-between p-7 shadow-lg"
               >
-                {/* Background Image Container using standard img tag to bypass Next.js hostname checks */}
-                <div className="absolute inset-0 z-0">
+                {/* Background Image Container */}
+                <div className="absolute inset-0 z-0 overflow-hidden rounded-2xl">
                   <img
                     src={item.bgImage}
                     alt={item.title}
-                    className="w-full h-full object-cover object-center scale-100 group-hover:scale-110 transition-transform duration-700 opacity-30 dark:opacity-20 group-hover:opacity-40 dark:group-hover:opacity-35"
+                    className="w-full h-full object-cover object-center scale-100 group-hover:scale-105 transition-transform duration-500 opacity-50 dark:opacity-40 group-hover:opacity-75 dark:group-hover:opacity-60"
                   />
-                  {/* Heavy Overlay Gradients */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-white via-white/85 to-white/40 dark:from-[#0d0d0f] dark:via-[#0d0d0f]/90 dark:to-[#0d0d0f]/60" />
+                  {/* Enhanced Contrast Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/70 to-neutral-950/30" />
                 </div>
 
-                {/* Card Content */}
-                <div className="relative z-10">
-                  {/* Top Row: Index Number & Icon */}
-                  <div className="flex items-center justify-between mb-6">
-                    <span className="text-xs font-mono font-medium text-neutral-500 dark:text-neutral-500">
-                      {item.id}
-                    </span>
-                    <div className="w-10 h-10 rounded-2xl bg-neutral-200/60 dark:bg-neutral-800/80 border border-neutral-300 dark:border-neutral-700 flex items-center justify-center text-neutral-800 dark:text-neutral-200 group-hover:bg-red-600 group-hover:text-white group-hover:border-red-600 transition-colors">
-                      <Icon className="w-5 h-5" />
-                    </div>
+                {/* Card Top Header */}
+                <div className="relative z-10 flex items-center justify-between">
+                  <span className="text-xs font-mono font-bold text-neutral-300 bg-neutral-900/80 px-2.5 py-1 rounded-full border border-neutral-700/60 backdrop-blur-md">
+                    {item.id}
+                  </span>
+                  <div className="w-10 h-10 rounded-xl bg-neutral-900/80 border border-neutral-700/80 backdrop-blur-md flex items-center justify-center text-neutral-100 group-hover:bg-red-600 group-hover:text-white group-hover:border-red-600 transition-colors duration-300">
+                    <Icon className="w-5 h-5" />
                   </div>
+                </div>
 
-                  {/* Title */}
-                  <h3 className={`${saira.className} text-lg font-semibold text-neutral-900 dark:text-white tracking-tight`}>
+                {/* Card Content Body */}
+                <div className="relative z-10 mt-auto">
+                  <h3 className={`${saira.className} text-xl font-bold text-white tracking-tight drop-shadow-sm`}>
                     {item.title}
                   </h3>
 
-                  {/* Description */}
-                  <p className="mt-3 text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                  <p className="mt-2.5 text-xs text-neutral-300 leading-relaxed font-normal drop-shadow-sm">
                     {item.description}
                   </p>
                 </div>
 
-                {/* Card Footer Line */}
-                <div className="relative z-10 pt-4 border-t border-neutral-300/60 dark:border-neutral-800/60 flex items-center gap-1 text-[11px] font-medium text-neutral-500 dark:text-neutral-500 group-hover:text-red-600 transition-colors">
+                {/* Card Footer */}
+                <div className="relative z-10 mt-5 pt-3.5 border-t border-neutral-700/50 flex items-center gap-1 text-[11px] font-medium text-neutral-400 group-hover:text-red-500 transition-colors duration-300">
                   <span>Standard Equipment</span>
                   <span className="w-1.5 h-1.5 rounded-full bg-current ml-auto" />
                 </div>
@@ -149,7 +192,6 @@ export default function Amenities() {
             );
           })}
         </div>
-
       </div>
     </section>
   );
